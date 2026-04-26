@@ -4,22 +4,41 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/mdmourao/go-d1"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 func main() {
-	dsn := "http://example.com?token=verysecretpassword&debug=true"
-	db, err := sql.Open("god1", dsn)
+	if err := godotenv.Load(); err != nil {
+		log.Printf("no .env file loaded: %v", err)
+	}
+
+	dsn := os.Getenv("D1_DSN")
+	if dsn == "" {
+		log.Fatal("D1_DSN is not set")
+	}
+
+	sqlDB, err := sql.Open("god1", dsn)
 	if err != nil {
 		log.Fatalf("open: %v", err)
 	}
-	defer db.Close()
+	defer sqlDB.Close()
 
-	var n int
-	if err := db.QueryRow("SELECT 1").Scan(&n); err != nil {
-		log.Fatalf("query: %v", err)
+	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
+	if err != nil {
+		log.Fatalf("gorm open: %v", err)
 	}
 
-	fmt.Println("SELECT 1 =>", n)
+	var mascots []Mascots
+	if err := db.Find(&mascots).Error; err != nil {
+		log.Fatalf("find: %v", err)
+	}
+
+	for i, m := range mascots {
+		fmt.Printf("%d - %d %s %s — %s\n", i, m.ID, m.Language, m.Name, m.Description)
+	}
 }
