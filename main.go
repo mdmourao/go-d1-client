@@ -2,10 +2,11 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
+	"net/http"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/mdmourao/go-d1"
 	"gorm.io/driver/sqlite"
@@ -33,12 +34,23 @@ func main() {
 		log.Fatalf("gorm open: %v", err)
 	}
 
-	var mascots []Mascots
-	if err := db.Find(&mascots).Error; err != nil {
-		log.Fatalf("find: %v", err)
+	r := gin.Default()
+
+	r.GET("/mascots", func(c *gin.Context) {
+		var mascots []Mascots
+		if err := db.Find(&mascots).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, mascots)
+	})
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
 	}
 
-	for i, m := range mascots {
-		fmt.Printf("%d - %d %s %s — %s\n", i, m.ID, m.Language, m.Name, m.Description)
+	if err := r.Run(":" + port); err != nil {
+		log.Fatalf("server: %v", err)
 	}
 }

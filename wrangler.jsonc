@@ -1,0 +1,37 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "go-d1-client",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-10-01",
+  "containers": [
+    {
+      "class_name": "MascotsContainer",
+      "image": "./Dockerfile",
+      "max_instances": 1,
+      "instance_type": "basic"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "class_name": "MascotsContainer",
+        "name": "MASCOTS"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "new_sqlite_classes": ["MascotsContainer"],
+      "tag": "v1"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "routes": [
+    {
+      "pattern": "go-d1-client.mdmourao.com",
+      "custom_domain": true
+    }
+  ]
+}
