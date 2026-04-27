@@ -1,0 +1,12 @@
+@host = http://localhost:8080
+
+### List all mascots
+GET {{host}}/mascots
+
+### Update a mascot's description
+PUT {{host}}/mascots/14
+Content-Type: application/json
+
+{
+  "description": "Updated description, top!"
+}

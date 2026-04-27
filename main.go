@@ -45,6 +45,29 @@ func main() {
 		c.JSON(http.StatusOK, mascots)
 	})
 
+	r.PUT("/mascots/:id", func(c *gin.Context) {
+		var mascot Mascots
+		if err := db.First(&mascot, c.Param("id")).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Mascot not found"})
+			return
+		}
+
+		var input struct {
+			Description string `json:"description"`
+		}
+		if err := c.ShouldBindJSON(&input); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		mascot.Description = input.Description
+		if err := db.Save(&mascot).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, mascot)
+	})
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
